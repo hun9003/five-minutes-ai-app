@@ -4,16 +4,20 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "granite:dev": "npx granite dev",
+    "granite:build": "npx granite build"
   },
   "dependencies": {
+    "@apps-in-toss/web-framework": "^1.5.0",
+    "firebase": "^12.6.0",
     "lucide-react": "0.344.0",
-    "react-dom": "18.2.0",
     "react": "18.2.0",
-    "recharts": "2.12.0",
-    "react-router-dom": "6.22.3"
+    "react-dom": "18.2.0",
+    "react-router-dom": "6.22.3",
+    "recharts": "2.12.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

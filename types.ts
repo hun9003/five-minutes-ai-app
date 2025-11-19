@@ -10,6 +10,7 @@ export interface Course {
   title: string;
   description: string;
   thumbnail: string;
+  videoUrl?: string; // YouTube, Vimeo 등의 영상 URL
   duration: string; // e.g., "5분"
   difficulty: 'Easy' | 'Medium' | 'Hard';
   category: Category;

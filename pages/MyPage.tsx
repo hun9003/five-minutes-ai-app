@@ -1,9 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { WEBINAR_URL, WEBINAR_TITLE } from '../constants';
-import { ChevronRight, Settings, Award } from 'lucide-react';
+import { getWebinarSettings } from '../firebase/services';
+import { Settings, Award } from 'lucide-react';
+import { WebinarBanner } from '../components/WebinarBanner';
 
 export const MyPage: React.FC = () => {
+  const [webinarUrl, setWebinarUrl] = useState('');
+  const [webinarTitle, setWebinarTitle] = useState('');
+
+  useEffect(() => {
+    loadWebinarSettings();
+  }, []);
+
+  const loadWebinarSettings = async () => {
+    const settings = await getWebinarSettings();
+    setWebinarUrl(settings.url);
+    setWebinarTitle(settings.title);
+  };
+
   // Mock Data for chart
   const data = [
     { name: '완료', value: 4 },
@@ -78,25 +92,11 @@ export const MyPage: React.FC = () => {
       </section>
 
       {/* Webinar Banner */}
-      <section className="px-4 mb-8">
-        <a 
-            href={WEBINAR_URL} 
-            target="_blank" 
-            rel="noreferrer"
-            className="block bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-5 text-white shadow-lg shadow-indigo-200 active:scale-[0.98] transition-transform"
-        >
-            <div className="flex justify-between items-center">
-                <div>
-                    <div className="text-indigo-200 text-xs font-bold mb-1 uppercase tracking-wide">Special Event</div>
-                    <h3 className="font-bold text-lg leading-tight mb-1">{WEBINAR_TITLE}</h3>
-                    <p className="text-sm opacity-90">선착순 무료 신청 마감임박!</p>
-                </div>
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                    <ChevronRight size={24} />
-                </div>
-            </div>
-        </a>
-      </section>
+      {webinarUrl && webinarTitle && (
+        <section className="px-4 mb-8">
+          <WebinarBanner url={webinarUrl} title={webinarTitle} />
+        </section>
+      )}
 
       <section className="bg-white p-4 mb-20">
         <h2 className="text-lg font-bold text-gray-900 mb-2 px-2">획득한 배지</h2>
