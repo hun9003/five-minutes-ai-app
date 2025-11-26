@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { getWebinarSettings } from '../firebase/services';
+import { getMaterialSettings } from '../firebase/services';
 import { Settings, Award } from 'lucide-react';
-import { WebinarBanner } from '../components/WebinarBanner';
+import { MaterialGuide } from '../components/MaterialGuide';
 
 export const MyPage: React.FC = () => {
-  const [webinarUrl, setWebinarUrl] = useState('');
-  const [webinarTitle, setWebinarTitle] = useState('');
+  const [gptsUrl, setGptsUrl] = useState('');
+  const [gptsTitle, setGptsTitle] = useState('');
+  const [cafeGuideText, setCafeGuideText] = useState('');
 
   useEffect(() => {
-    loadWebinarSettings();
+    loadMaterialSettings();
   }, []);
 
-  const loadWebinarSettings = async () => {
-    const settings = await getWebinarSettings();
-    setWebinarUrl(settings.url);
-    setWebinarTitle(settings.title);
+  const loadMaterialSettings = async () => {
+    const settings = await getMaterialSettings();
+    setGptsUrl(settings.gptsUrl);
+    setGptsTitle(settings.gptsTitle);
+    setCafeGuideText(settings.cafeGuideText);
   };
 
   // Mock Data for chart
@@ -91,12 +93,14 @@ export const MyPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Webinar Banner */}
-      {webinarUrl && webinarTitle && (
-        <section className="px-4 mb-8">
-          <WebinarBanner url={webinarUrl} title={webinarTitle} />
-        </section>
-      )}
+      {/* 교재 안내 */}
+      <section className="px-6 mb-4">
+        <MaterialGuide
+          gptsUrl={gptsUrl}
+          gptsTitle={gptsTitle}
+          cafeGuideText={cafeGuideText}
+        />
+      </section>
 
       <section className="bg-white p-4 mb-20">
         <h2 className="text-lg font-bold text-gray-900 mb-2 px-2">획득한 배지</h2>

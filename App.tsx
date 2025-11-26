@@ -1,5 +1,7 @@
 import React from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { AdProvider } from './contexts/AdContext';
 import { Layout } from './components/Layout';
 import { Home } from './pages/Home';
 import { CourseList } from './pages/CourseList';
@@ -10,18 +12,22 @@ import { MyPage } from './pages/MyPage';
 
 const App: React.FC = () => {
   return (
-    <HashRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/courses" element={<CourseList />} />
-          <Route path="/courses/:id" element={<CourseDetail />} />
-          <Route path="/challenge" element={<ChallengeList />} />
-          <Route path="/challenge/:day" element={<ChallengeDetail />} />
-          <Route path="/mypage" element={<MyPage />} />
-        </Routes>
-      </Layout>
-    </HashRouter>
+    <AuthProvider>
+      <AdProvider>
+        <HashRouter>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/courses" element={<CourseList />} />
+              <Route path="/courses/:id" element={<CourseDetail />} />
+              <Route path="/challenge" element={<ChallengeList />} />
+              <Route path="/challenge/:day" element={<ChallengeDetail />} />
+              <Route path="/mypage" element={<MyPage />} />
+            </Routes>
+          </Layout>
+        </HashRouter>
+      </AdProvider>
+    </AuthProvider>
   );
 };
 

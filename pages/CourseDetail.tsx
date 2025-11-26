@@ -1,74 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, Share2 } from 'lucide-react';
-import { getCourse, markCourseComplete, getWebinarSettings } from '../firebase/services';
-import { Course } from '../types';
+import { COURSES } from '../constants';
+import { markCourseComplete, getMaterialSettings } from '../firebase/services';
+import { analyticsEvents } from '../firebase/config';
+import { useAuth } from '../contexts/AuthContext';
+import { useAd } from '../contexts/AdContext';
 import { Button } from '../components/Button';
 import { VideoPlayer } from '../components/VideoPlayer';
-import { AdModal } from '../components/AdModal';
 import { CompletionModal } from '../components/CompletionModal';
+import { MaterialGuide } from '../components/MaterialGuide';
 
 export const CourseDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { loadAd, showAd: showAdFunction, isAdReady, isAdShowing } = useAd();
 
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [showAd, setShowAd] = useState(false);
+  const [course, setCourse] = useState(COURSES.find(c => c.id === id) || null);
   const [adCompleted, setAdCompleted] = useState(false);
   const [showCompletion, setShowCompletion] = useState(false);
-  const [webinarUrl, setWebinarUrl] = useState('');
-  const [webinarTitle, setWebinarTitle] = useState('');
+  const [gptsUrl, setGptsUrl] = useState('');
+  const [gptsTitle, setGptsTitle] = useState('');
+  const [cafeGuideText, setCafeGuideText] = useState('');
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    loadCourseData();
-    loadWebinarSettings();
-  }, [id]);
 
-  const loadCourseData = async () => {
-    if (!id) return;
-    setLoading(true);
-    const data = await getCourse(id);
-    setCourse(data);
-    setLoading(false);
+    if (course) {
+      analyticsEvents.courseViewed(course.id, course.title);
+      // 광고 미리 로드
+      loadAd('ait-ad-test-interstitial-id');
+    }
+
+    loadMaterialSettings();
+  }, [id, course]);
+
+  const loadMaterialSettings = async () => {
+    const settings = await getMaterialSettings();
+    setGptsUrl(settings.gptsUrl);
+    setGptsTitle(settings.gptsTitle);
+    setCafeGuideText(settings.cafeGuideText);
   };
 
-  const loadWebinarSettings = async () => {
-    const settings = await getWebinarSettings();
-    setWebinarUrl(settings.url);
-    setWebinarTitle(settings.title);
-  };
+  const handleStartCourse = async () => {
+    if (!course) return;
 
-  const handleStartCourse = () => {
-    setShowAd(true);
-  };
+    analyticsEvents.courseStarted(course.id);
+    analyticsEvents.adViewed(course.id);
 
-  const handleAdComplete = () => {
-    setAdCompleted(true);
+    // 광고 표시
+    const adResult = await showAdFunction();
+    if (adResult) {
+      setAdCompleted(true);
+    }
   };
 
   const handleCourseComplete = async () => {
-    if (!id) return;
+    if (!course || !user) return;
 
-    // 임시 사용자 ID (실제로는 토스 로그인 연동 필요)
-    const userId = 'demo_user_' + Date.now();
-    await markCourseComplete(userId, id);
+    await markCourseComplete(user.userKey.toString(), course.id);
+    analyticsEvents.courseCompleted(course.id, 300); // 5분
     setShowCompletion(true);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-
   if (!course) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center px-6">
           <p className="text-gray-600 mb-4">강의를 찾을 수 없습니다</p>
           <Button onClick={() => navigate('/courses')}>강의 목록으로</Button>
         </div>
@@ -103,6 +102,13 @@ export const CourseDetail: React.FC = () => {
 
         <h1 className="text-2xl font-extrabold text-gray-900 mb-2">{course.title}</h1>
         <p className="text-gray-600 leading-relaxed mb-6">{course.description}</p>
+
+        {/* 교재 안내 블록 */}
+        <MaterialGuide
+          gptsUrl={gptsUrl}
+          gptsTitle={gptsTitle}
+          cafeGuideText={cafeGuideText}
+        />
 
         {/* Video Player or Start Button */}
         {!adCompleted ? (
@@ -149,12 +155,6 @@ export const CourseDetail: React.FC = () => {
       </div>
 
       {/* Modals */}
-      <AdModal
-        isOpen={showAd}
-        onClose={() => setShowAd(false)}
-        onAdComplete={handleAdComplete}
-      />
-
       <CompletionModal
         isOpen={showCompletion}
         onClose={() => {
@@ -162,9 +162,7 @@ export const CourseDetail: React.FC = () => {
           navigate('/');
         }}
         title="강의 완료!"
-        message="오늘의 학습을 성공적으로 마쳤어요. 더 깊이 배우고 싶다면 무료 공개특강에 참여해보세요!"
-        webinarUrl={webinarUrl}
-        webinarTitle={webinarTitle}
+        message="오늘의 학습을 성공적으로 마쳤어요. 교재에서 더 많은 내용을 확인해보세요!"
       />
     </div>
   );

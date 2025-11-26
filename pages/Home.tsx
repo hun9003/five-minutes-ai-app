@@ -1,15 +1,30 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Flame, ChevronRight } from 'lucide-react';
 import { CourseCard } from '../components/CourseCard';
 import { COURSES, CHALLENGES } from '../constants';
 import { Button } from '../components/Button';
+import { useAuth } from '../contexts/AuthContext';
+import { analyticsEvents } from '../firebase/config';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { user, login, isAuthenticated } = useAuth();
+
   const todayCourse = COURSES[0];
   const recommendedCourses = COURSES.slice(1, 4);
   const activeChallenge = CHALLENGES.find(c => c.status === 'active') || CHALLENGES[0];
+
+  useEffect(() => {
+    analyticsEvents.pageView('home');
+
+    // 자동 로그인 시도 (개발/테스트용)
+    if (!isAuthenticated) {
+      login();
+    }
+  }, []);
+
+  const userName = user?.name || '김토스';
 
   return (
     <div className="space-y-6">
@@ -17,7 +32,9 @@ export const Home: React.FC = () => {
       <header className="bg-white p-6 pb-4">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900">안녕하세요, <br/>김토스님 👋</h1>
+            <h1 className="text-2xl font-extrabold text-gray-900">
+              안녕하세요, <br/>{userName}님 👋
+            </h1>
           </div>
           <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
             <Bell size={20} className="text-gray-600" />

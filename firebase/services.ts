@@ -115,7 +115,7 @@ export async function markChallengeComplete(userId: string, day: number): Promis
   }
 }
 
-// 웨비나 설정 가져오기
+// 웨비나 설정 가져오기 (하위 호환성 유지)
 export async function getWebinarSettings(): Promise<{ url: string; title: string }> {
   try {
     const settingsRef = doc(db, COLLECTIONS.SETTINGS, 'webinar');
@@ -136,6 +136,38 @@ export async function getWebinarSettings(): Promise<{ url: string; title: string
     return {
       url: 'https://example.com/webinar',
       title: '🎉 챗사피엔스 무료 공개특강 신청하기',
+    };
+  }
+}
+
+// 교재 설정 가져오기
+export async function getMaterialSettings(): Promise<{
+  gptsUrl: string;
+  gptsTitle: string;
+  cafeGuideText: string;
+}> {
+  try {
+    const settingsRef = doc(db, COLLECTIONS.SETTINGS, 'materials');
+    const snapshot = await getDoc(settingsRef);
+    if (snapshot.exists()) {
+      const data = snapshot.data();
+      return {
+        gptsUrl: data.gptsUrl || '',
+        gptsTitle: data.gptsTitle || '5분 AI 교재 GPTs',
+        cafeGuideText: data.cafeGuideText || '챗사피엔스 네이버 카페에서 더 많은 학습 자료를 확인하세요',
+      };
+    }
+    return {
+      gptsUrl: '',
+      gptsTitle: '5분 AI 교재 GPTs',
+      cafeGuideText: '챗사피엔스 네이버 카페에서 더 많은 학습 자료를 확인하세요',
+    };
+  } catch (error) {
+    console.error('Failed to fetch material settings:', error);
+    return {
+      gptsUrl: '',
+      gptsTitle: '5분 AI 교재 GPTs',
+      cafeGuideText: '챗사피엔스 네이버 카페에서 더 많은 학습 자료를 확인하세요',
     };
   }
 }

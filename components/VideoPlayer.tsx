@@ -13,7 +13,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onComplete,
   courseTitle,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [hasWatched, setHasWatched] = useState(false);
   const [showCompleteButton, setShowCompleteButton] = useState(false);
 
@@ -26,7 +25,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         : new URL(url).searchParams.get('v');
 
       if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+        return `https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`;
       }
     }
 
@@ -34,7 +33,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (url.includes('vimeo.com')) {
       const videoId = url.split('vimeo.com/')[1]?.split('?')[0];
       if (videoId) {
-        return `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+        return `https://player.vimeo.com/video/${videoId}?autoplay=0`;
       }
     }
 
@@ -45,20 +44,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const embedUrl = getEmbedUrl(videoUrl);
 
   useEffect(() => {
-    // 5분 후 완료 버튼 표시 (실제로는 영상 길이에 맞게 조정)
-    if (isPlaying) {
-      const timer = setTimeout(() => {
-        setShowCompleteButton(true);
-      }, 5 * 60 * 1000); // 5분
-
-      return () => clearTimeout(timer);
-    }
-  }, [isPlaying]);
-
-  const handlePlay = () => {
-    setIsPlaying(true);
+    // 영상 로드 후 즉시 시청 중 상태로 변경
     setHasWatched(true);
-  };
+
+    // 30초 후 완료 버튼 표시 (테스트용 - 프로덕션에서는 영상 길이에 맞게 조정)
+    const timer = setTimeout(() => {
+      setShowCompleteButton(true);
+    }, 30 * 1000); // 30초
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleComplete = () => {
     if (onComplete) {
@@ -69,23 +64,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   return (
     <div className="space-y-4">
       <div className="video-wrapper">
-        {!isPlaying ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-            <button
-              onClick={handlePlay}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-6 transition-all transform hover:scale-110"
-            >
-              <Play size={48} fill="white" />
-            </button>
-          </div>
-        ) : (
-          <iframe
-            src={embedUrl}
-            title={courseTitle}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        )}
+        <iframe
+          src={embedUrl}
+          title={courseTitle}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="w-full aspect-video rounded-xl"
+        />
       </div>
 
       {/* 영상 컨트롤 */}

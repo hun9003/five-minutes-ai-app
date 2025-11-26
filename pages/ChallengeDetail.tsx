@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, Camera, CheckCircle2 } from 'lucide-react';
-import { CHALLENGES, WEBINAR_URL } from '../constants';
+import { CHALLENGES } from '../constants';
 import { Button } from '../components/Button';
 
 export const ChallengeDetail: React.FC = () => {
@@ -34,19 +34,22 @@ export const ChallengeDetail: React.FC = () => {
                 🏆
             </div>
             <h1 className="text-3xl font-bold mb-2">미션 성공!</h1>
-            <p className="text-emerald-100 mb-8 text-lg">
+            <p className="text-emerald-100 mb-4 text-lg">
                 Day {challenge.day} 챌린지를 완료했어요.<br/>
                 AI 마스터에 한 걸음 더 가까워졌네요!
             </p>
-            <Button 
-                variant="secondary" 
-                className="bg-white text-emerald-600 hover:bg-gray-100 w-full mb-4 shadow-none"
-                onClick={() => window.open(WEBINAR_URL, '_blank')}
-            >
-                🎁 보상: 무료 특강 신청하기
-            </Button>
-             <Button 
-                variant="outline" 
+            {challenge.day === 14 && (
+              <div className="bg-white/20 backdrop-blur rounded-2xl p-4 mb-4 w-full">
+                <p className="text-sm text-emerald-50 mb-2">
+                  🎓 14일 챌린지를 모두 완료하셨습니다!
+                </p>
+                <p className="text-xs text-emerald-100">
+                  교재 페이지에서 더 많은 학습 자료를 확인하세요
+                </p>
+              </div>
+            )}
+             <Button
+                variant="outline"
                 className="border-emerald-300 text-emerald-100 hover:bg-emerald-700 w-full"
                 onClick={() => navigate('/challenge')}
             >
