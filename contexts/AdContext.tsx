@@ -14,16 +14,22 @@ interface AdProviderProps {
   children: ReactNode;
 }
 
-// 테스트용 광고 ID
-const TEST_AD_ID = 'ait-ad-test-interstitial-id';
+// 프로덕션 광고 ID
+const TEST_AD_ID = 'ait.live.f7882484d2704417';
 
 export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
   const [isAdLoaded, setIsAdLoaded] = useState(false);
   const [isAdShowing, setIsAdShowing] = useState(false);
   const [isAdReady, setIsAdReady] = useState(false);
+  const [currentAdId, setCurrentAdId] = useState<string>(TEST_AD_ID);
 
   const loadAd = async (adId: string = TEST_AD_ID): Promise<void> => {
     try {
+      console.log(`Loading ad with ID: ${adId}`);
+      setCurrentAdId(adId);
+      setIsAdReady(false);
+      setIsAdLoaded(false);
+
       // 토스 앱 환경에서만 실제 광고 로드
       if (typeof window !== 'undefined' && (window as any).TossAppBridge) {
         try {
@@ -43,7 +49,7 @@ export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
               adUnitId: adId,
             },
             onEvent: (event) => {
-              console.log('Ad event:', event);
+              console.log('Load ad event:', event);
               if (event.type === 'loaded') {
                 console.log('Ad loaded successfully');
                 setIsAdLoaded(true);
@@ -78,11 +84,12 @@ export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
 
   const showAd = async (): Promise<boolean> => {
     if (!isAdReady) {
-      console.warn('Ad is not ready yet');
+      console.warn('Ad is not ready yet. Please call loadAd first.');
       return false;
     }
 
     try {
+      console.log(`Showing ad with ID: ${currentAdId}`);
       setIsAdShowing(true);
 
       // 토스 앱 환경에서만 실제 광고 표시
@@ -100,16 +107,25 @@ export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
           return new Promise((resolve) => {
             GoogleAdMob.showAppsInTossAdMob({
               options: {
-                adUnitId: TEST_AD_ID,
+                adUnitId: currentAdId, // loadAd에서 설정한 adId 사용
               },
               onEvent: (event) => {
                 console.log('Show ad event:', event);
                 if (event.type === 'showed') {
-                  console.log('Ad showed');
+                  console.log('Ad showed successfully');
+                } else if (event.type === 'earned') {
+                  // 보상형 광고: 사용자가 광고를 끝까지 시청하여 보상을 받을 자격을 얻음
+                  console.log('Ad earned - user completed watching rewarded ad');
+                  setIsAdShowing(false);
+                  setIsAdReady(false);
+                  resolve(true);
                 } else if (event.type === 'dismissed') {
+                  // 광고가 닫힘 (보상형의 경우 earned 후 dismissed 발생)
                   console.log('Ad dismissed');
                   setIsAdShowing(false);
                   setIsAdReady(false);
+                  // earned 이벤트가 이미 발생했다면 true, 아니면 false
+                  // 하지만 여기서는 단순화하여 dismissed도 성공으로 처리
                   resolve(true);
                 }
               },

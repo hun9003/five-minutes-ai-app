@@ -15,6 +15,7 @@ export interface Course {
   difficulty: 'Easy' | 'Medium' | 'Hard';
   category: Category;
   isPopular?: boolean;
+  learningPoints?: string[]; // 학습 포인트 배열
 }
 
 export interface ChallengeDay {

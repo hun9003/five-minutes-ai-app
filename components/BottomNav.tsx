@@ -9,8 +9,9 @@ export const BottomNav: React.FC = () => {
   const navItems = [
     { label: '홈', icon: Home, path: '/' },
     { label: '강의실', icon: BookOpen, path: '/courses' },
-    { label: '챌린지', icon: Trophy, path: '/challenge' },
-    { label: '마이', icon: User, path: '/mypage' },
+    // 챌린지와 마이페이지는 추후 오픈 예정
+    // { label: '챌린지', icon: Trophy, path: '/challenge' },
+    // { label: '마이', icon: User, path: '/mypage' },
   ];
 
   return (

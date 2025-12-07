@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, Share2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { COURSES } from '../constants';
 import { markCourseComplete, getMaterialSettings } from '../firebase/services';
 import { analyticsEvents } from '../firebase/config';
@@ -30,7 +30,7 @@ export const CourseDetail: React.FC = () => {
     if (course) {
       analyticsEvents.courseViewed(course.id, course.title);
       // 광고 미리 로드
-      loadAd('ait-ad-test-interstitial-id');
+      loadAd('ait.live.f7882484d2704417');
     }
 
     loadMaterialSettings();
@@ -78,15 +78,12 @@ export const CourseDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-white relative">
       {/* Header */}
-      <div className="sticky top-0 left-0 right-0 p-4 flex justify-between items-center z-10 bg-white/80 backdrop-blur">
+      <div className="sticky top-0 left-0 right-0 p-4 z-10 bg-white/80 backdrop-blur">
         <button
           onClick={() => navigate(-1)}
           className="p-2 rounded-full hover:bg-gray-100 transition-colors"
         >
           <ArrowLeft size={24} />
-        </button>
-        <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-          <Share2 size={24} />
         </button>
       </div>
 
@@ -137,21 +134,19 @@ export const CourseDetail: React.FC = () => {
         )}
 
         {/* Learning Points */}
-        <h3 className="font-bold text-lg mb-4">학습 포인트</h3>
-        <ul className="space-y-3 mb-8">
-          <li className="flex items-start">
-            <CheckCircle size={20} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-            <span className="text-gray-700">AI 도구의 기본 개념 이해하기</span>
-          </li>
-          <li className="flex items-start">
-            <CheckCircle size={20} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-            <span className="text-gray-700">실무에서 바로 쓰는 프롬프트 3가지</span>
-          </li>
-          <li className="flex items-start">
-            <CheckCircle size={20} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-            <span className="text-gray-700">5분 안에 실습까지 완료</span>
-          </li>
-        </ul>
+        {course.learningPoints && course.learningPoints.length > 0 && (
+          <>
+            <h3 className="font-bold text-lg mb-4">학습 포인트</h3>
+            <ul className="space-y-3 mb-8">
+              {course.learningPoints.map((point, index) => (
+                <li key={index} className="flex items-start">
+                  <CheckCircle size={20} className="text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700">{point}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
 
       {/* Modals */}

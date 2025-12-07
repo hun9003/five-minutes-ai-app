@@ -1,15 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Flame, ChevronRight } from 'lucide-react';
+import { Flame, ChevronRight } from 'lucide-react';
 import { CourseCard } from '../components/CourseCard';
 import { COURSES, CHALLENGES } from '../constants';
-import { Button } from '../components/Button';
-import { useAuth } from '../contexts/AuthContext';
 import { analyticsEvents } from '../firebase/config';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { user, login, isAuthenticated } = useAuth();
 
   const todayCourse = COURSES[0];
   const recommendedCourses = COURSES.slice(1, 4);
@@ -17,28 +14,16 @@ export const Home: React.FC = () => {
 
   useEffect(() => {
     analyticsEvents.pageView('home');
-
-    // 자동 로그인 시도 (개발/테스트용)
-    if (!isAuthenticated) {
-      login();
-    }
   }, []);
-
-  const userName = user?.name || '김토스';
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <header className="bg-white p-6 pb-4">
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl font-extrabold text-gray-900">
-              안녕하세요, <br/>{userName}님 👋
-            </h1>
-          </div>
-          <button className="p-2 rounded-full bg-gray-100 hover:bg-gray-200">
-            <Bell size={20} className="text-gray-600" />
-          </button>
+        <div className="mb-4">
+          <h1 className="text-2xl font-extrabold text-gray-900">
+            5분 AI 무료 강의 👋
+          </h1>
         </div>
         <p className="text-gray-500">오늘도 5분만 투자해서 AI와 친해져봐요!</p>
       </header>
@@ -67,8 +52,8 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Challenge Status */}
-      <section className="px-6">
+      {/* Challenge Status - 추후 오픈 예정 */}
+      {/* <section className="px-6">
         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100">
             <div className="flex justify-between items-start">
                 <div>
@@ -79,16 +64,16 @@ export const Home: React.FC = () => {
                     14%
                 </div>
             </div>
-            <Button 
-                variant="secondary" 
-                size="sm" 
+            <Button
+                variant="secondary"
+                size="sm"
                 className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700"
                 onClick={() => navigate('/challenge')}
             >
                 오늘 미션 인증하기
             </Button>
         </div>
-      </section>
+      </section> */}
 
       {/* Recommended Horizontal List */}
       <section className="pl-6 pb-6">

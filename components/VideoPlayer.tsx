@@ -84,7 +84,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </div>
         )}
 
-        {showCompleteButton && (
+        {/* 강의 완료하기 버튼 숨김 처리 */}
+        {/* {showCompleteButton && (
           <Button
             onClick={handleComplete}
             variant="primary"
@@ -94,7 +95,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <CheckCircle size={20} className="mr-2" />
             강의 완료하기
           </Button>
-        )}
+        )} */}
 
         {/* 배속 및 전체화면 가이드 */}
         <div className="text-xs text-gray-500 text-center space-y-1">
