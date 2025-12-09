@@ -3,9 +3,9 @@ import { defineConfig } from '@apps-in-toss/web-framework/config';
 export default defineConfig({
   appName: 'ai5min-free-class', // 토스 앱인토스 콘솔에서 설정한 앱 이름
   brand: {
-    displayName: '5분 AI', // 화면에 노출될 앱의 한글 이름
+    displayName: '5분 AI 무료 강의', // 화면에 노출될 앱의 한글 이름
     primaryColor: '#3B82F6', // 앱의 기본 색상 (blue-500)
-    icon: '', // 아이콘 이미지 주소 (추후 업데이트)
+    icon: 'https://img.icons8.com/fluency/96/artificial-intelligence.png', // 앱 아이콘 (AI 관련 아이콘)
     bridgeColorMode: 'basic', // 흰 배경
   },
   web: {

@@ -49,8 +49,8 @@ export const MaterialGuide: React.FC<MaterialGuideProps> = ({
               </div>
             )}
 
-            {/* 네이버 카페 안내 (검색 안내 텍스트만) */}
-            {cafeGuideText && (
+            {/* 네이버 카페 안내 - 심사 반려로 제거됨 */}
+            {/* {cafeGuideText && (
               <div className="bg-white/70 rounded-xl p-3 border border-amber-100">
                 <p className="text-sm text-gray-700 leading-relaxed">
                   💡 {cafeGuideText}
@@ -59,7 +59,7 @@ export const MaterialGuide: React.FC<MaterialGuideProps> = ({
                   네이버에서 "챗사피엔스"를 검색하세요
                 </p>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+// @ts-ignore - web-bridge types
+import { GoogleAdMob } from '@apps-in-toss/web-bridge';
 
 interface AdContextType {
   isAdLoaded: boolean;
   isAdShowing: boolean;
-  loadAd: (adId: string) => Promise<void>;
+  loadAd: (adId: string) => void;
   showAd: () => Promise<boolean>;
   isAdReady: boolean;
 }
@@ -15,65 +17,50 @@ interface AdProviderProps {
 }
 
 // 프로덕션 광고 ID
-const TEST_AD_ID = 'ait.live.f7882484d2704417';
+const DEFAULT_AD_ID = 'ait.live.f7882484d2704417';
 
 export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
   const [isAdLoaded, setIsAdLoaded] = useState(false);
   const [isAdShowing, setIsAdShowing] = useState(false);
   const [isAdReady, setIsAdReady] = useState(false);
-  const [currentAdId, setCurrentAdId] = useState<string>(TEST_AD_ID);
+  const [currentAdId, setCurrentAdId] = useState<string>(DEFAULT_AD_ID);
 
-  const loadAd = async (adId: string = TEST_AD_ID): Promise<void> => {
+  const loadAd = (adId: string = DEFAULT_AD_ID): void => {
+    console.log(`Loading ad with ID: ${adId}`);
+    setCurrentAdId(adId);
+    setIsAdReady(false);
+    setIsAdLoaded(false);
+
+    // 광고 SDK 지원 여부 확인
+    if (GoogleAdMob?.loadAppsInTossAdMob?.isSupported?.() !== true) {
+      console.warn('GoogleAdMob is not supported');
+      setIsAdLoaded(true);
+      setIsAdReady(true);
+      return;
+    }
+
     try {
-      console.log(`Loading ad with ID: ${adId}`);
-      setCurrentAdId(adId);
-      setIsAdReady(false);
-      setIsAdLoaded(false);
-
-      // 토스 앱 환경에서만 실제 광고 로드
-      if (typeof window !== 'undefined' && (window as any).TossAppBridge) {
-        try {
-          const { GoogleAdMob } = await import('@apps-in-toss/web-bridge');
-
-          // isSupported 확인
-          if (!GoogleAdMob.loadAppsInTossAdMob.isSupported()) {
-            console.warn('GoogleAdMob is not supported');
+      // 광고 로드 (올바른 API 사용)
+      const cleanup = GoogleAdMob.loadAppsInTossAdMob({
+        options: {
+          adGroupId: adId, // adUnitId가 아닌 adGroupId 사용
+        },
+        onEvent: (event) => {
+          console.log('광고 로드 이벤트:', event);
+          if (event.type === 'loaded') {
+            console.log('광고 로드 성공');
             setIsAdLoaded(true);
             setIsAdReady(true);
-            return;
           }
+        },
+        onError: (error) => {
+          console.error('광고 로드 실패:', error);
+          setIsAdLoaded(false);
+          setIsAdReady(false);
+        },
+      });
 
-          // loadAppsInTossAdMob 호출
-          GoogleAdMob.loadAppsInTossAdMob({
-            options: {
-              adUnitId: adId,
-            },
-            onEvent: (event) => {
-              console.log('Load ad event:', event);
-              if (event.type === 'loaded') {
-                console.log('Ad loaded successfully');
-                setIsAdLoaded(true);
-                setIsAdReady(true);
-              }
-            },
-            onError: (error) => {
-              console.error('Ad failed to load:', error);
-              setIsAdLoaded(false);
-              setIsAdReady(false);
-            },
-          });
-        } catch (error) {
-          console.error('Failed to load Toss ad:', error);
-          // 폴백: 로컬 테스트를 위해 광고 준비 완료로 설정
-          setIsAdLoaded(true);
-          setIsAdReady(true);
-        }
-      } else {
-        // 웹 환경에서는 즉시 준비 완료
-        console.log('Dev mode: Ad loaded (simulated)');
-        setIsAdLoaded(true);
-        setIsAdReady(true);
-      }
+      // cleanup 함수는 컴포넌트 언마운트 시 호출되어야 하지만, 여기서는 무시
     } catch (error) {
       console.error('Load ad error:', error);
       // 에러 시에도 계속 진행 (개발 환경)
@@ -84,77 +71,99 @@ export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
 
   const showAd = async (): Promise<boolean> => {
     if (!isAdReady) {
-      console.warn('Ad is not ready yet. Please call loadAd first.');
+      console.warn('광고가 아직 준비되지 않았습니다. loadAd를 먼저 호출해주세요.');
       return false;
     }
 
+    console.log(`광고 표시 시작 - ID: ${currentAdId}`);
+    setIsAdShowing(true);
+
+    // 광고 SDK 지원 여부 확인
+    if (GoogleAdMob?.showAppsInTossAdMob?.isSupported?.() !== true) {
+      console.warn('GoogleAdMob showAd is not supported');
+      setIsAdShowing(false);
+      return true;
+    }
+
     try {
-      console.log(`Showing ad with ID: ${currentAdId}`);
-      setIsAdShowing(true);
+      return new Promise((resolve) => {
+        let adCompleted = false;
+        let hasResolved = false; // 중복 resolve 방지
 
-      // 토스 앱 환경에서만 실제 광고 표시
-      if (typeof window !== 'undefined' && (window as any).TossAppBridge) {
-        try {
-          const { GoogleAdMob } = await import('@apps-in-toss/web-bridge');
+        GoogleAdMob.showAppsInTossAdMob({
+          options: {
+            adGroupId: currentAdId, // adUnitId가 아닌 adGroupId 사용
+          },
+          onEvent: (event) => {
+            console.log('광고 표시 이벤트:', event);
 
-          // isSupported 확인
-          if (!GoogleAdMob.showAppsInTossAdMob.isSupported()) {
-            console.warn('GoogleAdMob showAd is not supported');
-            setIsAdShowing(false);
-            return true;
-          }
+            switch (event.type) {
+              case 'requested':
+                console.log('광고 보여주기 요청 완료');
+                break;
 
-          return new Promise((resolve) => {
-            GoogleAdMob.showAppsInTossAdMob({
-              options: {
-                adUnitId: currentAdId, // loadAd에서 설정한 adId 사용
-              },
-              onEvent: (event) => {
-                console.log('Show ad event:', event);
-                if (event.type === 'showed') {
-                  console.log('Ad showed successfully');
-                } else if (event.type === 'earned') {
-                  // 보상형 광고: 사용자가 광고를 끝까지 시청하여 보상을 받을 자격을 얻음
-                  console.log('Ad earned - user completed watching rewarded ad');
+              case 'show':
+                console.log('광고 콘텐츠 표시됨');
+                break;
+
+              case 'impression':
+                console.log('광고 노출');
+                break;
+
+              case 'clicked':
+                console.log('광고 클릭');
+                break;
+
+              case 'userEarnedReward':
+                console.log('광고 보상 획득 (리워드형 광고 완료)');
+                adCompleted = true;
+                // dismissed 이벤트를 기다리지 않고 바로 완료 처리하지 않음
+                break;
+
+              case 'dismissed':
+                console.log('광고 닫힘, 보상 획득 여부:', adCompleted);
+                if (!hasResolved) {
+                  hasResolved = true;
                   setIsAdShowing(false);
                   setIsAdReady(false);
-                  resolve(true);
-                } else if (event.type === 'dismissed') {
-                  // 광고가 닫힘 (보상형의 경우 earned 후 dismissed 발생)
-                  console.log('Ad dismissed');
-                  setIsAdShowing(false);
-                  setIsAdReady(false);
-                  // earned 이벤트가 이미 발생했다면 true, 아니면 false
-                  // 하지만 여기서는 단순화하여 dismissed도 성공으로 처리
-                  resolve(true);
+
+                  // 리워드형 광고에서 userEarnedReward를 받았는지 확인
+                  if (adCompleted) {
+                    console.log('광고 시청 완료 - 강의 시청 가능');
+                    resolve(true);
+                  } else {
+                    console.warn('광고를 끝까지 시청하지 않았습니다');
+                    resolve(false);
+                  }
                 }
-              },
-              onError: (error) => {
-                console.error('Ad failed to show:', error);
-                setIsAdShowing(false);
-                setIsAdReady(false);
-                resolve(false);
-              },
-            });
-          });
-        } catch (error) {
-          console.error('Failed to show Toss ad:', error);
-          setIsAdShowing(false);
-          return true; // 개발 환경에서는 성공으로 처리
-        }
-      } else {
-        // 웹 환경에서는 시뮬레이션 (2초 대기)
-        console.log('Dev mode: Showing ad (simulated - 2 seconds)');
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        console.log('Dev mode: Ad completed');
-        setIsAdShowing(false);
-        setIsAdReady(false);
-        return true;
-      }
+                break;
+
+              case 'failedToShow':
+                console.log('광고 보여주기 실패');
+                if (!hasResolved) {
+                  hasResolved = true;
+                  setIsAdShowing(false);
+                  setIsAdReady(false);
+                  resolve(false);
+                }
+                break;
+            }
+          },
+          onError: (error) => {
+            console.error('광고 표시 실패:', error);
+            if (!hasResolved) {
+              hasResolved = true;
+              setIsAdShowing(false);
+              setIsAdReady(false);
+              resolve(false);
+            }
+          },
+        });
+      });
     } catch (error) {
       console.error('Show ad error:', error);
       setIsAdShowing(false);
-      return true; // 개발 환경에서는 성공으로 처리
+      return false;
     }
   };
 

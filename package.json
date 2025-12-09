@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@apps-in-toss/web-framework": "^1.5.0",
+    "@toss/tds-mobile": "^2.2.0",
+    "@toss/tds-mobile-ait": "^2.2.0",
     "firebase": "^12.6.0",
     "lucide-react": "0.344.0",
     "react": "18.2.0",

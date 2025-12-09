@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { TossConfirmDialog, TossAlertDialog } from '../components/TossDialog';
 import { COURSES } from '../constants';
 import { markCourseComplete, getMaterialSettings } from '../firebase/services';
 import { analyticsEvents } from '../firebase/config';
@@ -24,6 +25,11 @@ export const CourseDetail: React.FC = () => {
   const [gptsTitle, setGptsTitle] = useState('');
   const [cafeGuideText, setCafeGuideText] = useState('');
 
+  // 다이얼로그 상태
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+
   useEffect(() => {
     window.scrollTo(0, 0);
 
@@ -43,8 +49,35 @@ export const CourseDetail: React.FC = () => {
     setCafeGuideText(settings.cafeGuideText);
   };
 
-  const handleStartCourse = async () => {
+  const handleStartCourse = () => {
     if (!course) return;
+    // ConfirmDialog 표시
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmAd = async () => {
+    if (!course) return;
+
+    setShowConfirmDialog(false);
+
+    // 광고가 준비되지 않았다면 대기
+    if (!isAdReady) {
+      console.log('광고가 아직 준비 중입니다. 광고를 다시 로드합니다.');
+      loadAd('ait.live.f7882484d2704417');
+
+      // 광고 로드 대기 (최대 5초)
+      let waitCount = 0;
+      while (!isAdReady && waitCount < 10) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        waitCount++;
+      }
+
+      if (!isAdReady) {
+        setAlertMessage('광고를 준비하는 중입니다. 잠시 후 다시 시도해주세요.');
+        setShowAlertDialog(true);
+        return;
+      }
+    }
 
     analyticsEvents.courseStarted(course.id);
     analyticsEvents.adViewed(course.id);
@@ -53,6 +86,10 @@ export const CourseDetail: React.FC = () => {
     const adResult = await showAdFunction();
     if (adResult) {
       setAdCompleted(true);
+    } else {
+      // 광고 시청 실패 또는 중간에 닫은 경우
+      setAlertMessage('광고를 끝까지 시청해야 강의를 볼 수 있습니다.');
+      setShowAlertDialog(true);
     }
   };
 
@@ -158,6 +195,26 @@ export const CourseDetail: React.FC = () => {
         }}
         title="강의 완료!"
         message="오늘의 학습을 성공적으로 마쳤어요. 교재에서 더 많은 내용을 확인해보세요!"
+      />
+
+      {/* 광고 시청 확인 다이얼로그 */}
+      <TossConfirmDialog
+        open={showConfirmDialog}
+        title="광고를 보고 강의를 시청할까요?"
+        description="광고를 끝까지 시청하면 무료로 강의를 볼 수 있어요"
+        onCancel={() => setShowConfirmDialog(false)}
+        onConfirm={handleConfirmAd}
+        cancelText="취소"
+        confirmText="확인"
+      />
+
+      {/* 알림 다이얼로그 */}
+      <TossAlertDialog
+        open={showAlertDialog}
+        title="알림"
+        description={alertMessage}
+        onClose={() => setShowAlertDialog(false)}
+        buttonText="확인"
       />
     </div>
   );
