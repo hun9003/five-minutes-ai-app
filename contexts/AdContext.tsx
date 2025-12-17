@@ -88,7 +88,7 @@ export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
 
     try {
       return new Promise((resolve) => {
-        let adCompleted = false;
+        let adImpression = false; // 전면형 광고: impression 이벤트 발생 여부
         let hasResolved = false; // 중복 resolve 방지
 
         GoogleAdMob.showAppsInTossAdMob({
@@ -108,7 +108,8 @@ export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
                 break;
 
               case 'impression':
-                console.log('광고 노출');
+                console.log('광고 노출 (전면형 광고)');
+                adImpression = true;
                 break;
 
               case 'clicked':
@@ -116,24 +117,23 @@ export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
                 break;
 
               case 'userEarnedReward':
-                console.log('광고 보상 획득 (리워드형 광고 완료)');
-                adCompleted = true;
-                // dismissed 이벤트를 기다리지 않고 바로 완료 처리하지 않음
+                console.log('광고 보상 획득 (보상형 광고 완료)');
+                // 전면형 광고에서는 이 이벤트가 발생하지 않음
                 break;
 
               case 'dismissed':
-                console.log('광고 닫힘, 보상 획득 여부:', adCompleted);
+                console.log('광고 닫힘, impression 여부:', adImpression);
                 if (!hasResolved) {
                   hasResolved = true;
                   setIsAdShowing(false);
                   setIsAdReady(false);
 
-                  // 리워드형 광고에서 userEarnedReward를 받았는지 확인
-                  if (adCompleted) {
-                    console.log('광고 시청 완료 - 강의 시청 가능');
+                  // 전면형 광고: impression 이벤트가 발생했으면 성공
+                  if (adImpression) {
+                    console.log('전면형 광고 시청 완료 - 강의 시청 가능');
                     resolve(true);
                   } else {
-                    console.warn('광고를 끝까지 시청하지 않았습니다');
+                    console.warn('광고가 제대로 노출되지 않았습니다');
                     resolve(false);
                   }
                 }

@@ -35,8 +35,8 @@ export const CourseDetail: React.FC = () => {
 
     if (course) {
       analyticsEvents.courseViewed(course.id, course.title);
-      // 광고 미리 로드
-      loadAd('ait.live.f7882484d2704417');
+      // 광고 미리 로드 (전면형 광고)
+      loadAd('ait.v2.live.bcab5f51543443d9');
     }
 
     loadMaterialSettings();
@@ -51,7 +51,15 @@ export const CourseDetail: React.FC = () => {
 
   const handleStartCourse = () => {
     if (!course) return;
-    // ConfirmDialog 표시
+
+    // 첫 번째 영상(c1)은 확인 다이얼로그 없이 바로 시작
+    if (course.id === 'c1') {
+      analyticsEvents.courseStarted(course.id);
+      setAdCompleted(true);
+      return;
+    }
+
+    // 나머지 강의는 ConfirmDialog 표시
     setShowConfirmDialog(true);
   };
 
@@ -70,7 +78,7 @@ export const CourseDetail: React.FC = () => {
     // 광고가 준비되지 않았다면 대기
     if (!isAdReady) {
       console.log('광고가 아직 준비 중입니다. 광고를 다시 로드합니다.');
-      loadAd('ait.live.f7882484d2704417');
+      loadAd('ait.v2.live.bcab5f51543443d9');
 
       // 광고 로드 대기 (최대 5초)
       let waitCount = 0;
@@ -94,8 +102,8 @@ export const CourseDetail: React.FC = () => {
     if (adResult) {
       setAdCompleted(true);
     } else {
-      // 광고 시청 실패 또는 중간에 닫은 경우
-      setAlertMessage('광고를 끝까지 시청해야 강의를 볼 수 있습니다.');
+      // 광고 시청 실패
+      setAlertMessage('광고를 시청하지 못했습니다. 다시 시도해주세요.');
       setShowAlertDialog(true);
     }
   };
@@ -161,8 +169,13 @@ export const CourseDetail: React.FC = () => {
                 className="w-full h-full object-cover opacity-60"
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Button onClick={handleStartCourse} size="lg" variant="primary">
-                  학습 시작하기
+                <Button
+                  onClick={handleStartCourse}
+                  size="lg"
+                  variant="primary"
+                  loading={course.id !== 'c1' && !isAdReady}
+                >
+                  {course.id !== 'c1' && !isAdReady ? '' : '학습 시작하기'}
                 </Button>
               </div>
             </div>
@@ -208,7 +221,7 @@ export const CourseDetail: React.FC = () => {
       <TossConfirmDialog
         open={showConfirmDialog}
         title="광고를 보고 강의를 시청할까요?"
-        description="광고를 끝까지 시청하면 무료로 강의를 볼 수 있어요"
+        description="광고를 시청하면 무료로 강의를 볼 수 있어요"
         onCancel={() => setShowConfirmDialog(false)}
         onConfirm={handleConfirmAd}
         cancelText="취소"
