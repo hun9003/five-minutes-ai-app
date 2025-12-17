@@ -5,7 +5,7 @@ export default defineConfig({
   brand: {
     displayName: '5분 AI 무료 강의', // 화면에 노출될 앱의 한글 이름
     primaryColor: '#3B82F6', // 앱의 기본 색상 (blue-500)
-    icon: 'https://img.icons8.com/fluency/96/artificial-intelligence.png', // 앱 아이콘 (AI 관련 아이콘)
+    icon: 'https://static.toss.im/appsintoss/7157/72486df1-3731-4f50-84b4-ffa29c6930bf.png', // 앱 아이콘
     bridgeColorMode: 'basic', // 흰 배경
   },
   web: {

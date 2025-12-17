@@ -60,6 +60,13 @@ export const CourseDetail: React.FC = () => {
 
     setShowConfirmDialog(false);
 
+    // 첫 번째 영상(c1)은 광고 없이 바로 시청 가능
+    if (course.id === 'c1') {
+      analyticsEvents.courseStarted(course.id);
+      setAdCompleted(true);
+      return;
+    }
+
     // 광고가 준비되지 않았다면 대기
     if (!isAdReady) {
       console.log('광고가 아직 준비 중입니다. 광고를 다시 로드합니다.');

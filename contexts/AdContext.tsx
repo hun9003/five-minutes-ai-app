@@ -17,7 +17,8 @@ interface AdProviderProps {
 }
 
 // 프로덕션 광고 ID
-const DEFAULT_AD_ID = 'ait.live.f7882484d2704417';
+// const DEFAULT_AD_ID = 'ait.live.f7882484d2704417'; // 보상형
+const DEFAULT_AD_ID = 'ait.v2.live.bcab5f51543443d9'; // 전면형
 
 export const AdProvider: React.FC<AdProviderProps> = ({ children }) => {
   const [isAdLoaded, setIsAdLoaded] = useState(false);
